@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Génie Civil Pro - Accès Sécurisé</title>
+    <style>
+        :root {
+            --primary-dark: #0f172a;
+            --accent-blue: #2563eb;
+            --text-gray: #64748b;
+            --bg-light: #cbd5e1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .login-wrapper {
+            width: 380px;
+            background: white;
+            padding: 35px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .login-header { text-align: center; margin-bottom: 5px; }
+        .login-header h1 { font-size: 22px; color: var(--primary-dark); margin: 0 0 5px 0; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+        .login-header p { font-size: 12px; color: var(--text-gray); margin: 0; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
+        .form-group label { font-size: 11px; font-weight: bold; color: #475569; text-transform: uppercase; }
+        .input-control { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; box-sizing: border-box; color: var(--primary-dark); }
+        .input-control:focus { border-color: var(--accent-blue); }
+        .toggle-password-btn { position: absolute; right: 12px; top: 26px; background: none; border: none; cursor: pointer; font-size: 15px; padding: 0; color: var(--text-gray); outline: none; }
+        
+        .btn-submit { width: 100%; padding: 12px; background-color: var(--primary-dark); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; transition: background 0.2s; margin-top: 10px; text-transform: uppercase; }
+        .btn-submit:hover { background-color: #1e293b; }
+        
+        .error-message { color: #ef4444; font-size: 12px; font-weight: bold; text-align: center; display: none; background: #fee2e2; padding: 8px; border-radius: 4px; border: 1px solid #fca5a5; }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+    <div class="login-header">
+        <h1>Génie Civil Pro</h1>
+        <p>Console de Gestion & Suivi National</p>
+    </div>
+    
+    <div id="errorBox" class="error-message">Identifiants incorrects. Accès refusé.</div>
+
+    <div class="form-group">
+        <label for="txtUser">Identifiant Agent</label>
+        <input type="text" id="txtUser" class="input-control" placeholder="Entrez votre identifiant">
+    </div>
+
+    <div class="form-group">
+        <label for="txtPassword">Mot de passe de Sécurité</label>
+        <input type="password" id="txtPassword" class="input-control" placeholder="••••••••">
+        <button type="button" class="toggle-password-btn" onclick="basculerAffichageMotDePasse()">👁️</button>
+    </div>
+
+    <!-- UN SEUL BOUTON SÉCURISÉ PROPREMENT ENCASTRÉ -->
+    <button class="btn-submit" onclick="verifierAuthentificationAgent()">Se connecter à la console</button>
+</div>
+<script>
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { verifierAuthentificationAgent(); }
+    });
+
+    function basculerAffichageMotDePasse() {
+        let inputPass = document.getElementById('txtPassword');
+        inputPass.type = inputPass.type === "password" ? "text" : "password";
+    }
+
+    function verifierAuthentificationAgent() {
+        let userSaisi = document.getElementById('txtUser').value.trim().toLowerCase();
+        let passSaisi = document.getElementById('txtPassword').value;
+        let errorBox = document.getElementById('errorBox');
+
+        let baseSauvee = localStorage.getItem("matrice_utilisateurs_rbac_gc");
+        let listeComptes = baseSauvee ? JSON.parse(baseSauvee) : [
+            { id: 1, login: "admin", pass: "mada2026", role: "admin", lots: ["101", "102", "103"] }
+        ];
+
+        let compteTrouve = listeComptes.find(u => u.login.toLowerCase() === userSaisi && u.pass === passSaisi);
+
+        if (compteTrouve) {
+            errorBox.style.display = "none";
+            localStorage.setItem("session_securisee_active_gc", "VALIDE");
+            localStorage.setItem("session_user_login", compteTrouve.login);
+            localStorage.setItem("session_user_role", compteTrouve.role);
+            localStorage.setItem("session_user_lots", JSON.stringify(compteTrouve.lots));
+
+            window.location.href = "3_accueil.html";
+        } else {
+            errorBox.style.display = "block";
+            document.getElementById('txtPassword').value = "";
+            document.getElementById('txtPassword').focus();
+        }
+    }
+    // --- SYNCHRONISATION DU PORTAIL DE SÉCURITÉ AVEC LE FLUX CLOUD ---
+// --- DEPLOYEMENT DE L'INFRASTRUCTURE ET DE LA SYNCHRONISATION CLOUD ---
+window.addEventListener('DOMContentLoaded', () => {
+    // 1. Chargement et mise à jour de la base globale
+    if (typeof aspirerDonneesCloudUniversel === 'function') {
+        aspirerDonneesCloudUniversel();
+    }
+    
+    // 2. Activation du moteur d'application mobile installable
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(() => console.log("Moteur d'application mobile activé. Appli installable !"))
+        .catch(err => console.error("Erreur SW", err));
+    }
+});
+
+function aspirerDonneesCloudUniversel() {
+    let sauvegardeMiroir = localStorage.getItem("CLOUD_MIRROR_SNAPSHOT");
+    if (sauvegardeMiroir) {
+        try {
+            let paquet = JSON.parse(sauvegardeMiroir);
+            if (paquet.utilisateurs) {
+                localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
+                localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
+                localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
+                
+                if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
+                if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
+                if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
+                if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
+                if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
+                
+                console.log("☁️ Portail de connexion synchronisé à 100% avec l'écosystème Cloud.");
+            }
+        } catch (e) {
+            console.error("Erreur d'aspiration universelle", e);
+        }
+    }
+}
+  
+</script>
