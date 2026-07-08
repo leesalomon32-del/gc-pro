@@ -132,10 +132,30 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function aspirerDonneesCloudUniversel() {
     let sauvegardeMiroir = localStorage.getItem("CLOUD_MIRROR_SNAPSHOT");
-    if (sauvegardeMiroir) {
-        try {
-            let paquet = JSON.parse(sauvegardeMiroir);
-            if (paquet.utilisateurs) {
+    
+    // Si l'appareil (le téléphone) est neuf et n'a pas de mémoire, on interroge directement le dossier partagé Google Drive
+    if (!sauvegardeMiroir || sauvegardeMiroir === "{}") {
+        console.log("⏳ Initialisation du flux Cloud pour cet appareil...");
+        
+        // Cible officielle de ton dossier partagé Google Drive (1hdqB1QJWSt6_Oz9GIHXiQUTk9D5d3KoI)
+        const idDossierPartage = "1hdqB1QJWSt6_Oz9GIHXiQUTk9D5d3KoI";
+        const nomFichier = "GENIE_CIVIL_PRO_DATABASE_MASTER.json";
+        
+        // Appel public sécurisé via la clé API pour récupérer la base de données centrale
+        fetch(`https://googleapis.com{nomFichier}' and '${idDossierPartage}' in parents and trashed=false&key=AIzaSyDU6tNf5V_QKzDRf5Xv95VrvQwA4jJLRmc`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.files && data.files.length > 0) {
+                let fileId = data.files[0].id;
+                // Téléchargement du contenu du fichier JSON
+                return fetch(`https://googleapis.com{fileId}?alt=media&key=AIzaSyDU6tNf5V_QKzDRf5Xv95VrvQwA4jJLRmc`);
+            }
+        })
+        .then(res => res.json())
+        .then(paquet => {
+            if (paquet && paquet.utilisateurs) {
+                // Injection automatique dans la mémoire du smartphone
+                localStorage.setItem("CLOUD_MIRROR_SNAPSHOT", JSON.stringify(paquet));
                 localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
                 localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
                 localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
@@ -146,12 +166,28 @@ function aspirerDonneesCloudUniversel() {
                 if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
                 if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
                 
-                console.log("☁️ Portail de connexion synchronisé à 100% avec l'écosystème Cloud.");
+                console.log("✅ Écosystème Cloud synchronisé avec succès sur cet appareil !");
             }
-        } catch (e) {
-            console.error("Erreur d'aspiration universelle", e);
-        }
+        })
+        .catch(err => console.log("En attente de la première initialisation Cloud...", err));
+        return;
     }
+
+    // Si l'appareil a déjà une mémoire active, on lit le miroir local existant
+    try {
+        let paquet = JSON.parse(sauvegardeMiroir);
+        if (paquet && paquet.utilisateurs) {
+            localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
+            localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
+            localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
+            
+            if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
+            if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
+            if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
+            if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
+            if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
+        }
+    } catch (e) { console.error(e); }
 }
-  
+
 </script>
