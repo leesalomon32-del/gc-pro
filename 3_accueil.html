@@ -68,6 +68,34 @@
         
         .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 12px; }
         .btn-primary { background-color: var(--accent-blue); }
+    /* --- ADAPTATION MOBILE INTELLIGENTE (PWA) --- */
+@media (max-width: 768px) {
+    /* Si la page utilise une grille, on la passe en une seule colonne */
+    .layout-grid-workspace, .admin-main-layout, body > div[style*="display: flex"] {
+        flex-direction: column !important;
+        display: flex !important;
+        padding: 8px !important;
+        gap: 15px !important;
+    }
+
+    /* La liste des projets prend toute la largeur en haut */
+    div[style*="width: 25%"], .sidebar-projets, div:has(> #tbodyUsersAdmin) {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Le panneau des modules prend toute la largeur en dessous */
+    div[style*="width: 75%"], .main-content-modules {
+        width: 100% !important;
+    }
+
+    /* On agrandit légèrement les boutons des modules pour que les agents puissent cliquer facilement avec le pouce */
+    .btn, button, div[style*="background: white"] {
+        padding: 12px !important;
+        font-size: 13px !important;
+    }
+}
+
     </style>
 </head>
 <body>

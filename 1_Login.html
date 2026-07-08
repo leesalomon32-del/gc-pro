@@ -88,7 +88,7 @@
 
         let baseSauvee = localStorage.getItem("matrice_utilisateurs_rbac_gc");
         let listeComptes = baseSauvee ? JSON.parse(baseSauvee) : [
-            { id: 1, login: "admin", pass: "mada2026", role: "admin", lots: ["101", "102", "103"] }
+            { id: 1, login: "lee", pass: "SEAP2026", role: "admin", lots: ["101", "102", "103"] }
         ];
 
         let compteTrouve = listeComptes.find(u => u.login.toLowerCase() === userSaisi && u.pass === passSaisi);
