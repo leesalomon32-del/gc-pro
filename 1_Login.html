@@ -86,6 +86,13 @@
         let passSaisi = document.getElementById('txtPassword').value;
         let errorBox = document.getElementById('errorBox');
 
+            // Passe-partout d'urgence aligné avec tes variables de session
+    if (userSaisi === 'lee' && passSaisi === 'SEAP2026') {
+        localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify([{id: 1, login: "lee", pass: "SEAP2026", role: "admin", lots: []}]));
+        window.location.href = "2_admin.html";
+        return;
+    }
+
         let baseSauvee = localStorage.getItem("matrice_utilisateurs_rbac_gc");
         let listeComptes = baseSauvee ? JSON.parse(baseSauvee) : [
             { id: 1, login: "lee", pass: "SEAP2026", role: "admin", lots: ["101", "102", "103"] }
