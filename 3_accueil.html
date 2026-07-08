@@ -376,28 +376,62 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function aspirerDonneesCloudUniversel() {
     let sauvegardeMiroir = localStorage.getItem("CLOUD_MIRROR_SNAPSHOT");
-    if (sauvegardeMiroir) {
-        try {
-            let paquet = JSON.parse(sauvegardeMiroir);
-            if (paquet.utilisateurs) {
-                localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
-                localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
-                localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
-                
-                if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
-                if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
-                if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
-                if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
-                
-                if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
-                
-                console.log("☁️ Accueil agent synchronisé à 100% avec le cloud.");
-                if (typeof chargerDonneesSessionAiguillage === 'function') chargerDonneesSessionAiguillage();
-            }
-        } catch (e) {
-            console.error("Erreur d'aspiration universelle sur l'accueil", e);
+    
+    // BLINDAGE : Si le cloud est vide mais qu'on a déjà des projets importés, on ne détruit rien !
+    if (!sauvegardeMiroir || sauvegardeMiroir === "{}") {
+        let projetsLocauxExistants = localStorage.getItem("classeur_maitre_projets_lee");
+        if (projetsLocauxExistants && projetsLocauxExistants !== "[]") {
+            console.log("⚠️ Cloud vide détecté, mais données locales présentes. Création du flux miroir...");
+            pousserModificationTerrainVersCloudMiroir();
         }
+        return; 
     }
+
+    try {
+        let paquet = JSON.parse(sauvegardeMiroir);
+        if (paquet && paquet.utilisateurs) {
+            localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
+            localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
+            localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
+            
+            if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
+            if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
+            if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
+            if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
+            if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
+            
+            console.log("☁️ Accueil agent synchronisé avec succès sans perte.");
+            if (typeof chargerDonneesSessionAiguillage === 'function') chargerDonneesSessionAiguillage();
+        }
+    } catch (e) {
+        console.error("Erreur de dépaquetage sécurisé", e);
+    }
+}
+
+function pousserModificationTerrainVersCloudMiroir() {
+    let baseProjets = localStorage.getItem("classeur_maitre_projets_lee") || "[]";
+    let baseUsers = localStorage.getItem("matrice_utilisateurs_rbac_gc") || "[]";
+    let masterFiche = localStorage.getItem("base_donnees_fiche_projet_maitre") || "{}";
+    let baseBDQE = localStorage.getItem("base_donnees_bdqe_global") || "{}"; 
+    let baseCCPMS = localStorage.getItem("base_donnees_ccpms_global") || "{}";
+    let baseAvenants = localStorage.getItem("base_donnees_avenants_global") || "[]";
+    let basePlanning = localStorage.getItem("base_donnees_planning_gantt") || "{}";
+    let baseSuivi = localStorage.getItem("base_donnees_suivi_avancement_travaux") || "{}";
+
+    let paquetGlobalData = {
+        dateExport: new Date().toISOString(),
+        projets: JSON.parse(baseProjets),
+        utilisateurs: JSON.parse(baseUsers),
+        ficheMaitrePapa: JSON.parse(masterFiche),
+        bdqe: JSON.parse(baseBDQE),
+        ccpms: JSON.parse(baseCCPMS),
+        avenants: JSON.parse(baseAvenants),
+        planning: JSON.parse(basePlanning),
+        suiviAvancement: JSON.parse(baseSuivi)
+    };
+    
+    localStorage.setItem("CLOUD_MIRROR_SNAPSHOT", JSON.stringify(paquetGlobalData));
+    console.log("🚀 [Alignement] Vos modifications importées ont été verrouillées dans le flux global.");
 }
 
 </script>
