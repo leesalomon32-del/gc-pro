@@ -154,17 +154,38 @@
     }
 
     function declencherAutoRemplissage() {
-        let codeSaisi = document.getElementById('code_bdqe').value.trim();
-        if (!codeSaisi) return;
-        codeSaisi = codeSaisi.replace(',', '.');
-        document.getElementById('code_bdqe').value = codeSaisi;
-        let indexPoint = codeSaisi.indexOf('.');
-        if (indexPoint !== -1) {
-            let prefixe = codeSaisi.substring(0, indexPoint + 1);
-            let correspondance = listeBDQE.find(item => item.code_bdqe.startsWith(prefixe));
-            if (correspondance) document.getElementById('structure').value = correspondance.structure;
+    let codeSaisi = document.getElementById('code_bdqe').value.trim();
+    if (!codeSaisi) return;
+    
+    // Remplacement propre des virgules par des points pour garder la cohérence
+    codeSaisi = codeSaisi.replace(',', '.');
+    document.getElementById('code_bdqe').value = codeSaisi;
+
+    // 1. RECHERCHE DE CORRESPONDANCE TOTALE (Code exact complet)
+    // On cherche si ce code existe déjà précisément dans l'historique ou le dictionnaire BDQE
+    let matchExact = listeBDQE.find(item => item.code_bdqe === codeSaisi);
+    
+    if (matchExact) {
+        // Si trouvé, on remplit tout le formulaire d'un coup !
+        if (matchExact.structure) document.getElementById('structure').value = matchExact.structure;
+        if (matchExact.designation) document.getElementById('designation').value = matchExact.designation;
+        if (matchExact.unite) document.getElementById('unite').value = matchExact.unite;
+        if (matchExact.prix_unitaire) document.getElementById('prix_unitaire').value = matchExact.prix_unitaire;
+        return; // On stoppe ici car on a trouvé la correspondance parfaite
+    }
+
+    // 2. RECHERCHE PAR PRÉFIXE (Ton comportement initial de secours)
+    // Si le code exact n'existe pas encore, on gère l'héritage de la Structure via le préfixe "X."
+    let indexPoint = codeSaisi.indexOf('.');
+    if (indexPoint !== -1) {
+        let prefixe = codeSaisi.substring(0, indexPoint + 1);
+        let correspondancePrefixe = listeBDQE.find(item => item.code_bdqe.startsWith(prefixe));
+        if (correspondancePrefixe) {
+            document.getElementById('structure').value = correspondancePrefixe.structure;
         }
     }
+}
+
 
     function enregistrerLigne() {
         let ouvrage = document.getElementById('ouvrage').value.trim();
