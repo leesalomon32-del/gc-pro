@@ -67,24 +67,20 @@
         <input type="password" id="txtPassword" class="input-control" placeholder="••••••••">
         <button type="button" class="toggle-password-btn" onclick="basculerAffichageMotDePasse()">👁️</button>
     </div>
-    <!-- TON BOUTON ACTUEL DE CONNEXION (Ligne 70) -->
-    <button class="btn-submit" onclick="verifierAuthentificationAgent()">Se connecter à la console</button>
-
-    <!-- 📥 COLLER LA PASSERELLE D'IMPORTATION ICI -->
-    <div style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px; text-align: center;">
-        <p style="font-size: 11px; color: #64748b; margin: 0 0 8px 0; font-weight: bold; text-transform: uppercase;">
-            Restauration de secours (Fichier JSON)
-        </p>
-        <label class="btn-submit" style="background-color: #16a34a; display: block; text-align: center; text-decoration: none; padding: 10px; font-size: 12px; margin-top: 5px; cursor: pointer; color: white;">
-            Importer une sauvegarde JSON 📥
-            <input type="file" style="display: none;" onchange="importerFichierClasseurJsonManuel(this)">
-        </label>
-    </div>
-
-</div> <!-- Fermeture du login-wrapper -->
 
     <!-- UN SEUL BOUTON SÉCURISÉ PROPREMENT ENCASTRÉ -->
     <button class="btn-submit" onclick="verifierAuthentificationAgent()">Se connecter à la console</button>
+<!-- PASSERELLE DE SECOURS : IMPORTATION DIRECTE AU LOGIN -->
+<div style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px; text-align: center;">
+    <p style="font-size: 11px; color: #64748b; margin: 0 0 8px 0; font-weight: bold; text-transform: uppercase;">
+        Restauration de secours (Fichier JSON)
+    </p>
+    <label class="btn-submit" style="background-color: #16a34a; display: block; text-align: center; text-decoration: none; padding: 10px; font-size: 12px; margin-top: 5px;">
+        Importer une sauvegarde JSON 📥
+        <input type="file" style="display: none;" onchange="importerFichierClasseurJsonManuel(this)">
+    </label>
+</div>
+
 </div>
 <script>
     document.addEventListener('keydown', function(e) {

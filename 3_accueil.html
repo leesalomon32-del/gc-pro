@@ -114,6 +114,11 @@
 
             <div style="font-weight:bold; font-size:14px; color:var(--primary-dark);" id="txtModuleActuelCentral">Fiche Synthétique du Projet</div>
             <div style="font-size:12px; color:var(--accent-blue); font-weight:bold;" id="txtProjetActifLabelTop">PROJET SELECTIONNÉ : Aucun</div>
+        <!-- BOUTON EXPORT GLOBAL INTÉGRÉ À LA NAVBAR -->
+<button class="btn" style="background-color: #0284c7;" onclick="exporterFichierClasseurJsonManuel()">
+    Exporter Sauvegarde JSON 📤
+</button>
+
         </div>
         
         <div class="col-content">
@@ -364,10 +369,6 @@
             window.location.href = "1_login.html";
         }
     }
-<!-- BOUTON EXPORT GLOBAL INTÉGRÉ À LA NAVBAR -->
-<button class="btn" style="background-color: #0284c7;" onclick="exporterFichierClasseurJsonManuel()">
-    Exporter Sauvegarde JSON 📤
-</button>
 
     function sauvegarderBlocNotesLocal(valeur) { let p = listeProjetsGlobal.find(i => i.id == idProjetActif); if(p) { p.bloc_notes = valeur; localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(listeProjetsGlobal)); } }
     function sauvegarderPhotoEmplacement(input) { if (input.files && input.files) { let reader = new FileReader(); reader.onload = function(e) { let imgData = e.target.result; let p = listeProjetsGlobal.find(i => i.id == idProjetActif); if(p) { p.photoEmplacement = imgData; localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(listeProjetsGlobal)); } let idUniqueProjet = idProjetActif; let ccpmsSauve = localStorage.getItem(`ccpms_${idUniqueProjet}`); let listC = ccpmsSauve ? JSON.parse(ccpmsSauve) : []; listC.unshift({ id: Date.now(), categorie: "Photos", dateDoc: new Date().toISOString().substring(0,10), titre: `[Fiche Projet] - Emplacement : ${p.nom}`, description: `Plan mémorisé depuis la page d'accueil.`, fichierBrut: imgData, nomFichier: `Emplacement_${p.nom}.jpg`, typeMime: "image/jpeg" }); localStorage.setItem(`ccpms_${idUniqueProjet}`, JSON.stringify(listC)); document.getElementById('mapImgView').src = imgData; document.getElementById('mapImgView').style.display = "block"; document.getElementById('mapTxt').style.display = "none"; alert("📸 Succès !"); }; reader.readAsDataURL(input.files); } }
