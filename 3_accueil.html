@@ -384,7 +384,7 @@ function aspirerDonneesCloudUniversel() {
     console.log("Interrogation du stockage cloud Google Drive en cours...");
     
     // Utilisation de l'URL de téléchargement direct pour éviter l'erreur CORS
-    const urlDirecte = "https://google.com" + fileId + "&key=" + apiKey;
+    const urlDirecte = "https://google.com/" + fileId + "&key=" + apiKey;
     
     fetch(urlDirecte)
         .then(res => {
