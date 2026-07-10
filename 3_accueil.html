@@ -364,6 +364,10 @@
             window.location.href = "1_login.html";
         }
     }
+<!-- BOUTON EXPORT GLOBAL INTÉGRÉ À LA NAVBAR -->
+<button class="btn" style="background-color: #0284c7;" onclick="exporterFichierClasseurJsonManuel()">
+    Exporter Sauvegarde JSON 📤
+</button>
 
     function sauvegarderBlocNotesLocal(valeur) { let p = listeProjetsGlobal.find(i => i.id == idProjetActif); if(p) { p.bloc_notes = valeur; localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(listeProjetsGlobal)); } }
     function sauvegarderPhotoEmplacement(input) { if (input.files && input.files) { let reader = new FileReader(); reader.onload = function(e) { let imgData = e.target.result; let p = listeProjetsGlobal.find(i => i.id == idProjetActif); if(p) { p.photoEmplacement = imgData; localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(listeProjetsGlobal)); } let idUniqueProjet = idProjetActif; let ccpmsSauve = localStorage.getItem(`ccpms_${idUniqueProjet}`); let listC = ccpmsSauve ? JSON.parse(ccpmsSauve) : []; listC.unshift({ id: Date.now(), categorie: "Photos", dateDoc: new Date().toISOString().substring(0,10), titre: `[Fiche Projet] - Emplacement : ${p.nom}`, description: `Plan mémorisé depuis la page d'accueil.`, fichierBrut: imgData, nomFichier: `Emplacement_${p.nom}.jpg`, typeMime: "image/jpeg" }); localStorage.setItem(`ccpms_${idUniqueProjet}`, JSON.stringify(listC)); document.getElementById('mapImgView').src = imgData; document.getElementById('mapImgView').style.display = "block"; document.getElementById('mapTxt').style.display = "none"; alert("📸 Succès !"); }; reader.readAsDataURL(input.files); } }
@@ -373,45 +377,118 @@ const CONFIG_NOM_FICHIER_DRIVE = "GENIE_CIVIL_PRO_DATABASE_MASTER.json";
 window.addEventListener('DOMContentLoaded', () => {
     aspirerDonneesCloudUniversel();
 });
+
 function aspirerDonneesCloudUniversel() {
-    const idDossierPartage = "1hdqB1QJWSt6_Oz9GIHXiQUTk9D5d3KoI";
-    const nomFichier = "GENIE_CIVIL_PRO_DATABASE_MASTER.json";
-    const apiKey = "AIzaSyDU6tNf5V_QKzDRf5Xv95VrvQwA4jJLRmc";
+ // Si l'appareil n'a pas encore de mémoire locale ou pour forcer la mise à jour des agents en direct
+ const idDossierPartage = "1hdqB1QJWSt6_Oz9GIHXiQUTk9D5d3KoI";
+ const nomFichier = "GENIE_CIVIL_PRO_DATABASE_MASTER.json";
+ const apiKey = "AIzaSyDU6tNf5V_QKzDRf5Xv95VrvQwA4jJLRmc"; // Ta clé API Google
+ 
+ console.log(" Interrogations des serveurs Cloud ⏳ Google Drive...");
+ 
+ // CORRIGÉ : Ajout des '/' et des '$' manquants pour que Google comprenne l'adresse
+ fetch(`https://googleapis.com{idDossierPartage}'+in+parents+and+name+='${nomFichier}'+and+trashed=false&key=${apiKey}`)
+ .then(res => res.json())
+ .then(data => {
+ if (data && data.files && data.files.length > 0) {
+ let fileId = data.files[0].id; // Extraction du premier identifiant de fichier trouvé
+ // CORRIGÉ : Ajout du '/' et du '$' ici aussi
+ return fetch(`https://googleapis.com{fileId}?alt=media&key=${apiKey}`);
+ } else {
+ throw new Error("Fichier central non trouvé sur le Drive.");
+ }
+ })
+ .then(res => res.json())
+ .then(paquet => {
+ if (paquet && paquet.utilisateurs) {
+ // Injection automatique en mémoire pour synchroniser l'appareil de l'agent
+ localStorage.setItem("CLOUD_MIRROR_SNAPSHOT", JSON.stringify(paquet));
+ localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
+ localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
+ localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
+ 
+ if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
+ if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
+ if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
+ if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
+ if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
+ 
+ console.log(" Appareil synchronisé avec ✅ succès via Google API !");
+ }
+ })
+ .catch(err => {
+ console.warn("Mode local ou attente d'initialisation :", err.message);
+ });
+}
+function exporterFichierClasseurJsonManuel() {
+    // 1. Récupération des structures de base
+    let baseProjets = localStorage.getItem("classeur_maitre_projets_lee") || "[]";
+    let baseUsers = localStorage.getItem("matrice_utilisateurs_rbac_gc") || "[]";
+    let masterFiche = localStorage.getItem("base_donnees_fiche_projet_maitre") || "{}";
     
-    // L'identifiant direct du fichier JSON trouvé sur ton Drive
-    const fileId = "1fdTkE1FoPPMrH8DXymoeyhKvHMyQTEwO"; 
+    // 2. Récupération des modules globaux
+    let baseBDQE = localStorage.getItem("base_donnees_bdqe_global") || "{}";
+    let baseCCPMS = localStorage.getItem("base_donnees_ccpms_global") || "{}";
+    let baseAvenants = localStorage.getItem("base_donnees_avenants_global") || "[]";
+    let basePlanning = localStorage.getItem("base_donnees_planning_gantt") || "{}";
+    let baseSuiviAvancement = localStorage.getItem("base_donnees_suivi_avancement_travaux") || "{}";
+
+    // 3. Capture dynamique des sous-clés isolées (Chartes et données spécifiques de projets comme bdqe_101, suivi_101, etc.)
+    let toutesLesChartes = {};
+    let donneesParProjet = {};
     
-    console.log("Interrogation du stockage cloud Google Drive en cours...");
-    
-    // Utilisation de l'URL de téléchargement direct pour éviter l'erreur CORS
-    const urlDirecte = "https://google.com/" + fileId + "&key=" + apiKey;
-    
-    fetch(urlDirecte)
-        .then(res => {
-            if (!res.ok) throw new Error("Erreur réseau ou clé API invalide");
-            return res.json();
-        })
-        .then(paquet => {
-            if (paquet && paquet.utilisateurs) {
-                localStorage.setItem("CLOUD_MIRROR_SNAPSHOT", JSON.stringify(paquet));
-                localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
-                localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
-                localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
-                
-                if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
-                if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
-                if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
-                if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
-                if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
-                
-                console.log("Synchronisation automatique réussie !");
-                if (typeof renderProjetsSidebar === 'function') { renderProjetsSidebar(); }
-                if (typeof chargerFicheProjetSelectionne === 'function') { chargerFicheProjetSelectionne(); }
+    try {
+        let projets = JSON.parse(baseProjets);
+        projets.forEach(p => {
+            // Extraction des chartes
+            let cleCharte = `charte_administrative_${p.id}`;
+            if(localStorage.getItem(cleCharte)) {
+                toutesLesChartes[p.id] = JSON.parse(localStorage.getItem(cleCharte));
             }
-        })
-        .catch(err => {
-            console.warn("Mode local actif :", err.message);
+            
+            // Extraction des modules découpés par ID de projet (sécurité anti-perte terrain)
+            let prefixes = ['bdqe', 'avenants', 'planning', 'suivi', 'ccpms', 'pv'];
+            prefixes.forEach(pref => {
+                let cleSpecifique = `${pref}_${p.id}`;
+                if(localStorage.getItem(cleSpecifique)) {
+                    donneesParProjet[cleSpecifique] = JSON.parse(localStorage.getItem(cleSpecifique));
+                }
+            });
         });
+    } catch(e) {
+        console.error("Erreur lors du packaging des sous-clés :", e);
+    }
+
+    // 4. Assemblage final du paquet de données unifié
+    let paquetGlobalData = { 
+        dateExport: new Date().toISOString(), 
+        projets: JSON.parse(baseProjets), 
+        utilisateurs: JSON.parse(baseUsers), 
+        ficheMaitrePapa: JSON.parse(masterFiche),
+        chartesIsolees: toutesLesChartes,
+        bdqe: JSON.parse(baseBDQE),
+        ccpms: JSON.parse(baseCCPMS),
+        avenants: JSON.parse(baseAvenants),
+        planning: JSON.parse(basePlanning),
+        suiviAvancement: JSON.parse(baseSuiviAvancement),
+        donneesParProjet: donneesParProjet // Inclus le PV, les métres réels et l'index projet
+    };
+
+    // 5. Génération et téléchargement du fichier JSON
+    let chaineTexte = JSON.stringify(paquetGlobalData, null, 2);
+    let blob = new Blob([chaineTexte], { type: "application/json" });
+    let lien = document.createElement("a");
+    lien.href = URL.createObjectURL(blob);
+    
+    // Formatage dynamique du nom avec la date du jour
+    let dateStr = new Date().toISOString().substring(0, 10);
+    lien.download = `GENIE_CIVIL_PRO_BACKUP_GLOBAL_${dateStr}.json`;
+    
+    document.body.appendChild(lien); 
+    lien.click(); 
+    document.body.removeChild(lien);
+    
+    alert("🚀 Succès ! Sauvegarde totale compilée.\nToutes vos données (Configuration, Utilisateurs, Fiches et Études Techniques) sont sécurisées dans le fichier.");
 }
 
 </script>
