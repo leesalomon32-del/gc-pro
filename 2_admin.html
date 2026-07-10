@@ -183,29 +183,7 @@
                     </table>
                 </div>
             </div>
-                   <!-- CONSOLE DIRECTE PAR FICHIER CONFIG CLOUD + BACKUP MANUEL DE SECOURS -->
-        <div class="admin-card" style="border-top: 4px solid #7c3aed; margin-top: 10px; flex-direction: column; gap: 10px; padding: 12px 15px; display: flex; width: 100%; box-sizing: border-box;">
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <div>
-                    <div style="font-size: 12px; font-weight: bold; color: var(--primary-dark); text-transform: uppercase;">☁️ Activation Directe Google Drive</div>
-                    <div style="font-size: 11px; color: #64748b;" id="txtStatutCloudGdrive">État : Veuillez charger votre fichier de clé JSON pour allumer le Cloud.</div>
-                </div>
-                <label class="btn" style="background: #7c3aed; margin: 0; cursor: pointer; color: white;">
-                    🔑 Activer mon fichier de Clé Cloud
-                    <input type="file" style="display: none;" onchange="activerLiaisonCloudParFichierCle(this)">
-                </label>
-            </div>
-            
-            <div style="border-top: 1px dashed #cbd5e1; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <div style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">⚠️ Passerelle de secours (Copie Locale JSON) :</div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn" style="background: #0284c7; padding: 4px 10px; font-size: 10px; color: white;" onclick="exporterFichierClasseurJsonCloud()">📤 Exporter JSON</button>
-                    <label class="btn" style="background: #16a34a; padding: 4px 10px; font-size: 10px; margin: 0; cursor: pointer; color: white;">
-                        📥 Importer JSON
-                        <input type="file" style="display: none;" onchange="importerFichierClasseurJsonCloud(this)">
-                    </label>
-                </div>
-            </div>
+                   
         </div>
         
         
@@ -435,52 +413,7 @@ function importerFichierClasseurJsonCloud(input) {
             afficherTableauUtilisateurs(); 
         } 
     }
-// --- RESTAURATION DE LA PASSERELLE DE SECOURS JSON ---
-function exporterFichierClasseurJsonCloud() {
-    let baseProjets = localStorage.getItem("classeur_maitre_projets_lee") || "[]";
-    let baseUsers = localStorage.getItem("matrice_utilisateurs_rbac_gc") || "[]";
-    let masterFiche = localStorage.getItem("base_donnees_fiche_projet_maitre") || "{}";
-    let toutesLesChartes = {};
-    try {
-        let projets = JSON.parse(baseProjets);
-        projets.forEach(p => {
-            let cle = `charte_administrative_${p.id}`;
-            if(localStorage.getItem(cle)) toutesLesChartes[p.id] = JSON.parse(localStorage.getItem(cle));
-        });
-    } catch(e) {}
-    let paquetGlobalData = { dateExport: new Date().toISOString(), projets: JSON.parse(baseProjets), utilisateurs: JSON.parse(baseUsers), ficheMaitrePapa: JSON.parse(masterFiche), chartesIsolees: toutesLesChartes };
-    let chaineTexte = JSON.stringify(paquetGlobalData, null, 2);
-    let blob = new Blob([chaineTexte], { type: "application/json" });
-    let lien = document.createElement("a");
-    lien.href = URL.createObjectURL(blob);
-    lien.download = `GENIE_CIVIL_PRO_DATABASE_MASTER.json`;
-    document.body.appendChild(lien); lien.click(); document.body.removeChild(lien);
-    alert("📤 Succès ! Base globale compilée localement.");
-}
 
-function importerFichierClasseurJsonCloud(input) {
-    if (input.files && input.files[0]) {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                let paquet = JSON.parse(e.target.result);
-                if (!paquet.projets || !paquet.utilisateurs) return alert("⚠️ Fichier invalide.");
-                if (confirm("🚨 ATTENTION : Cela va écraser vos configurations locales. Confirmer ?")) {
-                    localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
-                    localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
-                    localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
-                    if (paquet.chartesIsolees) {
-                        for (let idLot in paquet.chartesIsolees) {
-                            localStorage.setItem(`charte_administrative_${idLot}`, JSON.stringify(paquet.chartesIsolees[idLot]));
-                        }
-                    }
-                    alert("📥 Synchronisation Manuelle Réussie !"); window.location.reload();
-                }
-            } catch (err) { alert("❌ Erreur de lecture."); }
-        };
-        reader.readAsText(input.files[0]);
-    }
-}
 
     // --- CONFIGURATION REALIGNEE DES CONNECTEURS GOOGLE DRIVE ---
     const CONFIG_CLÉ_API_GOOGLE = "AIzaSyDU6tNf5V_QKzDRf5Xv95VrvQwA4jJLRmc"; 
