@@ -374,43 +374,44 @@ window.addEventListener('DOMContentLoaded', () => {
     aspirerDonneesCloudUniversel();
 });
 function aspirerDonneesCloudUniversel() {
-  const idDossierPartage = "1hdqB1QJWSt6_Oz9GIHXiQUTk9D5d3KoI";
-  const nomFichier = "GENIE_CIVIL_PRO_DATABASE_MASTER.json";
-  const apiKey = "AIzaSyDU6tNf5V_QKzDRf5Xv95VrvQwA4jJLRmc";
-  console.log("Connexion au stockage Google Drive en cours...");
-  
-  fetch("https://googleapis.com/drive/v3/files/" + idDossierPartage + "'+in+parents+and+name+='" + nomFichier + "'+and+trashed=false&key=" + apiKey)
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.files && data.files.length > 0) {
-        let fileId = data.files[0].id;
-        return fetch("https://googleapis.com/drive/v3/files/" + fileId + "?alt=media&key=" + apiKey);
-      } else {
-        throw new Error("Fichier introuvable sur le cloud.");
-      }
-    })
-    .then(res => res.json())
-    .then(paquet => {
-      if (paquet && paquet.utilisateurs) {
-        localStorage.setItem("CLOUD_MIRROR_SNAPSHOT", JSON.stringify(paquet));
-        localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
-        localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
-        localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
-        
-        if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
-        if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
-        if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
-        if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
-        if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
-        
-        console.log("Synchronisation automatique réussie !");
-        if (typeof renderProjetsSidebar === 'function') { renderProjetsSidebar(); }
-        if (typeof chargerFicheProjetSelectionne === 'function') { chargerFicheProjetSelectionne(); }
-      }
-    })
-    .catch(err => {
-      console.warn("Mode local actif :", err.message);
-    });
+    const idDossierPartage = "1hdqB1QJWSt6_Oz9GIHXiQUTk9D5d3KoI";
+    const nomFichier = "GENIE_CIVIL_PRO_DATABASE_MASTER.json";
+    const apiKey = "AIzaSyDU6tNf5V_QKzDRf5Xv95VrvQwA4jJLRmc";
+    
+    // L'identifiant direct du fichier JSON trouvé sur ton Drive
+    const fileId = "1fdTkE1FoPPMrH8DXymoeyhKvHMyQTEwO"; 
+    
+    console.log("Interrogation du stockage cloud Google Drive en cours...");
+    
+    // Utilisation de l'URL de téléchargement direct pour éviter l'erreur CORS
+    const urlDirecte = "https://google.com" + fileId + "&key=" + apiKey;
+    
+    fetch(urlDirecte)
+        .then(res => {
+            if (!res.ok) throw new Error("Erreur réseau ou clé API invalide");
+            return res.json();
+        })
+        .then(paquet => {
+            if (paquet && paquet.utilisateurs) {
+                localStorage.setItem("CLOUD_MIRROR_SNAPSHOT", JSON.stringify(paquet));
+                localStorage.setItem("matrice_utilisateurs_rbac_gc", JSON.stringify(paquet.utilisateurs));
+                localStorage.setItem("classeur_maitre_projets_lee", JSON.stringify(paquet.projets));
+                localStorage.setItem("base_donnees_fiche_projet_maitre", JSON.stringify(paquet.ficheMaitrePapa));
+                
+                if (paquet.bdqe) localStorage.setItem("base_donnees_bdqe_global", JSON.stringify(paquet.bdqe));
+                if (paquet.ccpms) localStorage.setItem("base_donnees_ccpms_global", JSON.stringify(paquet.ccpms));
+                if (paquet.avenants) localStorage.setItem("base_donnees_avenants_global", JSON.stringify(paquet.avenants));
+                if (paquet.planning) localStorage.setItem("base_donnees_planning_gantt", JSON.stringify(paquet.planning));
+                if (paquet.suiviAvancement) localStorage.setItem("base_donnees_suivi_avancement_travaux", JSON.stringify(paquet.suiviAvancement));
+                
+                console.log("Synchronisation automatique réussie !");
+                if (typeof renderProjetsSidebar === 'function') { renderProjetsSidebar(); }
+                if (typeof chargerFicheProjetSelectionne === 'function') { chargerFicheProjetSelectionne(); }
+            }
+        })
+        .catch(err => {
+            console.warn("Mode local actif :", err.message);
+        });
 }
 
 </script>
