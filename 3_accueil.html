@@ -385,6 +385,7 @@ function aspirerDonneesCloudUniversel() {
  if (data && data.files && data.files.length > 0) {
  let fileId = data.files[0].id; // Corrigé avec [0]
  return fetch("https://googleapis.com" + fileId + "?alt=media&key=" + apiKey);
+
  } else {
  throw new Error("Fichier central non trouvé sur le Drive.");
  }
