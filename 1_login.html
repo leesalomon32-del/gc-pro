@@ -98,11 +98,7 @@
 
  window.addEventListener('DOMContentLoaded', () => {
  aspirerDonneesCloudUniversel();
- if ('serviceWorker' in navigator) {
- navigator.serviceWorker.register('sw.js')
- .then(() => console.log("Moteur mobile activé."))
- .catch(err => console.error("Erreur SW", err));
- }
+ 
  });
 
  function aspirerDonneesCloudUniversel() {
